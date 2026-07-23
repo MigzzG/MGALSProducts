@@ -151,8 +151,8 @@ STOP_END_DIM_OFFSET = 22.0
 STOP_END_SMALL_DIM_OFFSET = 14.0
 STOP_END_ANGLE_RADIUS = 36.0
 
-DIM_TEXT_HEIGHT = 8.0
-DIM_ARROW_SIZE = 4.5
+DIM_TEXT_HEIGHT = 5.0
+DIM_ARROW_SIZE = 3.0
 
 GEOMETRY_COLOUR = 7
 BLOCK_COLOUR = 1
@@ -1082,13 +1082,14 @@ def add_aligned_dimension(
     p1: Point,
     p2: Point,
     distance: float,
-    text: str,
+    text: str = "<>",
 ) -> None:
+    """Add a dimension showing the measured numerical value only."""
     dimension = msp.add_aligned_dim(
         p1=p1,
         p2=p2,
         distance=distance,
-        text=text,
+        text="<>",
         dimstyle="TRIMLINE_LINEAR",
         dxfattribs={
             "layer": "DIMENSIONS",
@@ -1105,6 +1106,7 @@ def add_angular_dimension(
     p2: Point,
     radius: float,
 ) -> None:
+    """Add an angular dimension showing the numerical value only."""
     base = angle_bisector_point(center, p1, p2, radius)
 
     dimension = msp.add_angular_dim_3p(
@@ -1112,7 +1114,7 @@ def add_angular_dimension(
         center=center,
         p1=p2,
         p2=p1,
-        text=f"{label} <>",
+        text="<>",
         dimstyle="TRIMLINE_ANGULAR",
         dxfattribs={
             "layer": "DIMENSIONS",
@@ -1302,14 +1304,14 @@ add_aligned_dimension(
     (0.0, GIRTH - top_relief_depth),
     (LEFT_END_RELIEF, GIRTH - top_relief_depth),
     18.0,
-    "TOP NOTCH <>",
+    "<>",
 )
 
 add_aligned_dimension(
     (0.0, bottom_relief_depth),
     (LEFT_END_RELIEF, bottom_relief_depth),
     -18.0,
-    "BOTTOM NOTCH <>",
+    "<>",
 )
 
 
@@ -1318,7 +1320,7 @@ add_aligned_dimension(
     (0.0, GIRTH),
     (0.0, 0.0),
     -FLAT_OVERALL_DIM_OFFSET,
-    "GIRTH <>",
+    "<>",
 )
 
 
@@ -1327,7 +1329,7 @@ add_aligned_dimension(
     (0.0, 0.0),
     (GUTTER_LENGTH, 0.0),
     -FLAT_LENGTH_DIM_OFFSET,
-    "L <>",
+    "<>",
 )
 
 
@@ -1336,7 +1338,7 @@ add_aligned_dimension(
     (wheel_x, 0.0),
     (GUTTER_LENGTH, 0.0),
     -WHEEL_FORM_DIM_OFFSET,
-    "WF <>",
+    "<>",
 )
 
 
@@ -1348,14 +1350,14 @@ if hole_centres:
         (0.0, sample_hole[1]),
         sample_hole,
         18.0,
-        "X <>",
+        "<>",
     )
 
     diameter_dim = msp.add_diameter_dim(
         center=sample_hole,
         radius=HOLE_DIAMETER / 2.0,
         angle=35.0,
-        text="Ø<>",
+        text="<>",
         dimstyle="TRIMLINE_DIAMETER",
         dxfattribs={
             "layer": "DIMENSIONS",
@@ -1469,7 +1471,7 @@ add_aligned_dimension(
     gutter_arm_p1,
     gutter_arm_p2,
     GUTTER_ARM_DIM_OFFSET,
-    "GUTTER ARM DEPTH <>",
+    "<>",
 )
 
 
@@ -1481,7 +1483,7 @@ add_aligned_dimension(
     p_a_fold,
     p_b_free,
     SECTION_SMALL_DIM_OFFSET,
-    "GAP <>",
+    "<>",
 )
 
 
@@ -1556,63 +1558,8 @@ for p1, p2 in stop_end["indicative_lines"]:
         },
     )
 
-positioned_stop_points = [
-    position_stop_point(point) for point in stop_local_points
-]
-stop_centroid = (
-    sum(point[0] for point in positioned_stop_points)
-    / len(positioned_stop_points),
-    sum(point[1] for point in positioned_stop_points)
-    / len(positioned_stop_points),
-)
 
-positioned_stop_segments = {
-    name: (position_stop_point(points[0]), position_stop_point(points[1]))
-    for name, points in stop_end["central_segments"].items()
-}
-positioned_lap_dimensions = {
-    name: (position_stop_point(points[0]), position_stop_point(points[1]))
-    for name, points in stop_end["lap_dimensions"].items()
-}
-
-for name in ("C", "D", "E", "F"):
-    p1, p2 = positioned_stop_segments[name]
-    add_outward_aligned_dimension(
-        p1, p2, stop_centroid, STOP_END_DIM_OFFSET, f"{name}-SE <>"
-    )
-
-for name, label in (("B_EXT", "B EXT <>"), ("F_EXT", "F EXT <>")):
-    p1, p2 = positioned_stop_segments[name]
-    add_outward_aligned_dimension(
-        p1, p2, stop_centroid, STOP_END_DIM_OFFSET, label
-    )
-
-for name, label in (
-    ("C_LAP", "C LAP <>"),
-    ("D_LAP", "D LAP <>"),
-    ("E_LAP", "E LAP <>"),
-    ("F_LAP", "F LAP <>"),
-):
-    p1, p2 = positioned_lap_dimensions[name]
-    add_outward_aligned_dimension(
-        p1, p2, stop_centroid, STOP_END_SMALL_DIM_OFFSET, label
-    )
-
-cut_center, cut_c_point, cut_d_point = stop_end["cut_angle_points"]
-add_angular_dimension(
-    "C/D CUT",
-    position_stop_point(cut_center),
-    position_stop_point(cut_c_point),
-    position_stop_point(cut_d_point),
-    STOP_END_ANGLE_RADIUS,
-)
-
-positioned_stop_min_x = min(point[0] for point in positioned_stop_points)
-positioned_stop_max_x = max(point[0] for point in positioned_stop_points)
-positioned_stop_min_y = min(point[1] for point in positioned_stop_points)
-positioned_stop_max_y = max(point[1] for point in positioned_stop_points)
-
-
+# The stop end is intentionally generated without dimensions.
 
 # ============================================================
 # SAVE
@@ -1620,4 +1567,3 @@ positioned_stop_max_y = max(point[1] for point in positioned_stop_points)
 
 output_path = Path(__file__).resolve().with_name(OUTPUT_FILENAME)
 doc.saveas(output_path)
-
